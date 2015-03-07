@@ -9,7 +9,7 @@ import glob
 def get_filelist_by_range(prefix, start, stop):
     filelist = glob.glob('%s*' % prefix)
     numlist = [name.split('.')[1] for name in filelist]
-    filelist = [name if (num <= stop) or (num >= start) for name,num in zip(filelist,numlist)]
+    filelist = [name if ((num <= stop) or (num >= start)) for name,num in zip(filelist,numlist)]
 
     filelist.sort()
     return filelist
