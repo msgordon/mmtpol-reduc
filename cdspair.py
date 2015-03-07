@@ -3,11 +3,14 @@ import argparse
 import pyfits
 import os
 
-def pipe_run(filelist, outdir='cdspair', verbose=True):
+def pipe_run(filelist, outdir='cdspair', sim = False, verbose=False):
     try:
         os.mkdir(outdir)
     except OSError:
-        print 'Directory %s exists' % outdir
+        if verbose:
+            print 'Directory %s exists' % outdir
+
+
 
     outlist = []
     for filename in filelist:
@@ -16,7 +19,8 @@ def pipe_run(filelist, outdir='cdspair', verbose=True):
         if verbose:
             print '\tWriting %s' % outfile
             
-        #pyfits.writeto(outfile, data, header, clobber = True)
+        if not sim:
+            pyfits.writeto(outfile, data, header, clobber = True)
         outlist.append(outfile)
 
     return outlist
