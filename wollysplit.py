@@ -10,31 +10,56 @@ def get_filenum(name,prefix):
     num = stripped[1].split('_')[0]
     return int(num)
 
-def split(filename, outdir, prefix):
+def split(filename,outdir,sim=False):
     basename, ext = os.path.splitext(filename)
     basename = os.path.basename(basename)
     basename = os.path.join(outdir,basename)
-
-    f = pyfits.open(filename)
-
-    ydim = f[0].header['NAXIS2']/2
-
-    Adat = f[0].data[ydim:,:]   #top
-    Bdat = f[0].data[0:ydim,:]  #bot
-
-    Afile = ''.join([basename,'_A',ext])
-    Bfile = ''.join([basename,'_B',ext])
-
-    hdr = f[0].header
-    hdr['WOLLY'] = ('A','Image half')
-    hdr['FILENUM'] = (get_filenum(filename,prefix),'Observation number')
     
-    pyfits.writeto(Afile,Adat,header=hdr,clobber=True)
+    Orfile = ''.join([basename,'.Or',ext])
+    Exfile = ''.join([basename,'.Ex',ext])
 
-    hdr['WOLLY'] = ('B','Image half')
-    pyfits.writeto(Bfile,Bdat,header=hdr,clobber=True)
 
-    return (Afile, Bfile)
+    if not sim:
+        try:
+            os.mkdir(outdir)
+        except OSError:
+            # directory exists
+            pass
+
+        f = pyfits.open(filename)
+
+        xdim = f[0].header['NAXIS1']/2
+
+        Ordat = f[0].data[:,xdim:]   #left
+        Exdat = f[0].data[:,0:xdim]  #right
+
+
+        hdr = f[0].header
+        hdr['BEAM'] = ('Or','Image half')
+        #hdr['FILENUM'] = (get_filenum(filename,prefix),'Observation number')
+    
+        pyfits.writeto(Orfile,Ordat,header=hdr,clobber=True)
+                
+        hdr['BEAM'] = ('Ex','Image half')
+        pyfits.writeto(Exfile,Exdat,header=hdr,clobber=True)
+        f.close()
+
+    return (Orfile, Exfile)
+
+    
+def pipe_run(filelist, outdir='wollydir',groups=False,sim=False):
+    filelist = list(filelist)
+
+    #if groups, list has been divided into sections
+    if not groups:
+        outlist = [split(x,outdir,sim=sim) for x in filelist]
+    else:
+        outlist = []
+        for group in filelist:
+            outlist.append([split(x,outdir,sim=sim) for x in group])
+
+    return outlist
+        
     
 
 
@@ -48,7 +73,7 @@ def main():
     args = parser.parse_args()
 
     for filename in args.file:
-        print split(filename,args.outdir,args.prefix)
+        print pipe_run(filename,args.prefix,args.outdir)
 
     print 'Split %i files to %s' % (len(args.file),args.outdir)
             
