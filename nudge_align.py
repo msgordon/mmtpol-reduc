@@ -155,7 +155,10 @@ class WindowParser(object):
             print 'Restored image from %s' % self.caller.compfiles[self.caller.current]
 
         if args.q:
-            plt.close()
+            self.fig.mpl_disconnect(self.keycid)
+            self.fig.mpl_disconnect(self.drawcid)
+            self.fig.mpl_disconnect(self.homecid)
+            plt.close('all')
             return self.caller.outfiles
 
 
@@ -207,8 +210,8 @@ class Plotter(object):
         # Connect handlers
         self.fig.canvas.mpl_disconnect(self.fig.canvas.manager.key_press_handler_id)
         self.keycid = self.fig.canvas.mpl_connect('key_press_event',self.onkey)
-        self.fig.canvas.mpl_connect('draw_event', self.ondraw)
-        self.fig.canvas.mpl_connect('home_event', self.onhome)
+        self.drawcid = self.fig.canvas.mpl_connect('draw_event', self.ondraw)
+        self.homecid = self.fig.canvas.mpl_connect('home_event', self.onhome)
 
 
         # For return
