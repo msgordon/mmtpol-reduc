@@ -75,12 +75,12 @@ def main():
 
     
     args = parser.parse_args()
-    if len(filelist) < 2:
+    if len(args.filelist) < 2:
         print 'At least two files required'
         exit(1)
 
     if method in ['sub','div']:
-        if len(filelist) != 2:
+        if len(args.filelist) != 2:
             print "Only two files allowed for method '%s'" % args.method
             exit(1)
         data,header = combine(args.filelist[0],args.filelist[1],args.method,args.out)
