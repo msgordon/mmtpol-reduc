@@ -87,6 +87,7 @@ def main():
 
     else:
         data, header = coadd(args.filelist,method=args.method,out=args.out)
+        print '-> %s' % args.out
 
     if data is None:
         return 1
