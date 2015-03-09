@@ -17,6 +17,9 @@ def coadd(filelist,method='sum',out=None):
     elif method == 'mean':
         data = np.mean(data,axis=0)
 
+    elif method == 'quad':
+        data = np.sqrt(np.sum([x**2 for x in data]))
+
     else:
         print 'Invalid method %s' % method
         return None,None
@@ -51,6 +54,9 @@ def combine(op1f, op2f, method, out=None):
         data = np.mean([op1[0].data, op2[0].data],axis=0)
     elif method == 'median':
         data = np.median([op1[0].data, op2[0].data],axis=0)
+    elif method == 'quad':
+        data = np.sqrt(op1[0].data**2 + op2[0].data**2)
+
     else:
         print 'Invalid method %s' % method
         return None,None
@@ -71,7 +77,7 @@ def main():
 
     parser.add_argument('filelist',nargs='+',help='Input FILES files')
     parser.add_argument('out',type=str,help='Output file')
-    parser.add_argument('-method',choices=('sum','sub','mult','div','mean','median'),default='sum',help='Operation (default="sum")')
+    parser.add_argument('-method',choices=('sum','sub','mult','div','mean','median','quad'),default='sum',help='Operation (default="sum")')
 
     
     args = parser.parse_args()
