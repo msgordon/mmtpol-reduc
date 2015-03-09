@@ -18,7 +18,7 @@ def coadd(filelist,method='sum',out=None):
         data = np.mean(data,axis=0)
 
     elif method == 'quad':
-        data = np.sqrt(np.sum([x**2 for x in data]))
+        data = np.sqrt(np.sum([x**2 for x in data],axis=0))
 
     else:
         print 'Invalid method %s' % method
