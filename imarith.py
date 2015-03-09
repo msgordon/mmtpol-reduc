@@ -79,7 +79,7 @@ def main():
         print 'At least two files required'
         exit(1)
 
-    if method in ['sub','div']:
+    if args.method in ['sub','div']:
         if len(args.filelist) != 2:
             print "Only two files allowed for method '%s'" % args.method
             exit(1)
