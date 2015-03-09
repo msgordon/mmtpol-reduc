@@ -8,6 +8,7 @@ import cdspair
 import wollysplit
 import warnings
 from imarith import combine, coadd
+import nudge_align
 
 REQ_OPTIONS = set(('prefix','start','stop','dither_pattern',
                    'obs_per_pos','outdir'))
@@ -152,9 +153,33 @@ def dither_subtract(qulist,section,prefix,pattern,ditherdir='dithersub',sim=Fals
     print 'Dither pairs \t-> %s' % ditherdir
     return outlist
         
+
+def nudge(filelist,step=5.0,outdir='.',ext=''):
+    try:
+        compfiles = nudge_align.pipe_run(filelist,step,outdir,ext,clobber=True)
+    except Exception as e:
+        print e
+        print "'nudge_align.py' failed.  Images might not be aligned"
+        return filelist
+
+    else:
+        # copy f00 file to directory
+        d00,h00 = pyfits.getdata(filelist[0],header=True)
+        h00['N_ORIG_F'] = (filelist[0],'Original file before nudge')
+        h['N_XS'] = (0,'Xshift of nudge')
+        h['N_YS'] = (0,'Yshift of nudge')
+        f00 = os.path.basename(filelist[0])
+        f00 = os.path.splitext(f00)
+        f00 = ''.join([f00[0],ext,f00[1]])
+        f00 = os.path.join(outdir,f00)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            pyfits.writeto(f00,d00,header=h00,clobber=True)
+        return [f00] + compfiles
     
 
-def qu_pair_subtract(cdslist,section,prefix,pattern,qudir='qupair',sim=False):
+def qu_pair_subtract(cdslist,section,prefix,pattern,align=False,qudir='qupair',sim=False):
     if not sim:
         try:
             os.mkdir(qudir)
@@ -168,6 +193,12 @@ def qu_pair_subtract(cdslist,section,prefix,pattern,qudir='qupair',sim=False):
         groups = zip(*[iter(cdslist)]*4)
         for files,pos,obs in zip(groups,pattern,['0','0','1','1']):
             f00,f45,f22,f67 = files
+            
+            if align:
+                nudgedir = os.path.join(qudir,'nudged')
+                f00,f45,f22,f67 = nudge_align(files,nudgedir)
+                                             
+            
             outfileQ = '.'.join([prefix,section,pos,'Q',obs,'fits'])
             outfileQ = os.path.join(qudir,outfileQ)
             outfileU = '.'.join([prefix,section,pos,'U',obs,'fits'])

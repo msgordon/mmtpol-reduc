@@ -94,6 +94,10 @@ class WindowParser(object):
                 outfile = os.path.splitext(outfile)
                 outfile = ''.join([outfile[0],self.caller.ext,outfile[1]])
                 outfile = os.path.join(self.caller.outdir,outfile)
+
+                # Store for return
+                self.caller.outfiles.append(outfile)
+                
                 try:
                     if idx == self.caller.current:
                         pyfits.writeto(outfile,data=self.caller.active_data,header=h,clobber=self.caller.clobber)
@@ -199,6 +203,10 @@ class Plotter(object):
         self.fig.canvas.mpl_connect('draw_event', self.ondraw)
         self.fig.canvas.mpl_connect('home_event', self.onhome)
 
+
+        # For return
+        self.outfiles = []
+        
         # Pausetext
         self.pausetext = '-'
         self.pid = None
@@ -364,6 +372,14 @@ class Plotter(object):
         plt.gca().set_xlim(self.ixlim)
         self.fig.canvas.draw()
 
+
+
+def pipe_run(filelist,step=5.0,outdir='.',ext='',clobber=True):
+    reffile = filelist[0]
+    compfiles = filelist[1:]
+    plotter = Plotter(reffile,compfiles,step,outdir,ext,clobber)
+    plotter.show()
+    return plotter.outfiles
 
 def main():
     parser = argparse.ArgumentParser(description='Nudge an image, or series of images, by a given step size')
