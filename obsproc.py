@@ -156,7 +156,7 @@ def dither_subtract(qulist,section,prefix,pattern,ditherdir='dithersub',sim=Fals
 
 def nudge(filelist,step=5.0,outdir='.',ext=''):
     try:
-        compfiles = nudge_align.pipe_run(filelist,step,outdir,ext,clobber=True)
+        compfiles = nudge_align.pipe_run(filelist,step=step,outdir=outdir,ext=ext,clobber=True)
     except Exception as e:
         print e
         print "'nudge_align.py' failed.  Images might not be aligned"
@@ -196,7 +196,7 @@ def qu_pair_subtract(cdslist,section,prefix,pattern,align=False,qudir='qupair',s
             
             if align:
                 nudgedir = os.path.join(qudir,'nudged')
-                f00,f45,f22,f67 = nudge(files,nudgedir)
+                f00,f45,f22,f67 = nudge(files,outdir=nudgedir)
                                              
             
             outfileQ = '.'.join([prefix,section,pos,'Q',obs,'fits'])
