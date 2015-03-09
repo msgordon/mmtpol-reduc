@@ -253,7 +253,7 @@ def main():
             cdslist = coadd_obs(cdslist,obs_per_pos,codir=os.path.join(secdir,'coaddobs'),sim=args.sim)
         
         qudir = os.path.join(secdir,'qupair')
-        qulist = qu_pair_subtract(cdslist,section,prefix,pattern,qudir=qudir,sim=args.sim)
+        qulist = qu_pair_subtract(cdslist,section,prefix,pattern,align=True,qudir=qudir,sim=args.sim)
 
         
         #dither sub
