@@ -32,14 +32,13 @@ class WindowParser(object):
             
         self.caller = caller
         
-        self.subparser.add_argument('--stretch',choices=['linear','sqrt','arcsinh','log','power','squared'],help='Choose image stretch (default = stretch)')
         self.subparser.add_argument('-s',type=float,help='Step size (default=%.1f)' % self.caller.step)
         self.subparser.add_argument('-w',action='store_true',help="Write current frame to output directory (outdir=%s)"%self.caller.outdir)
         self.subparser.add_argument('-wa',action='store_true',help="Write all frames to output directory")
         self.subparser.add_argument('-wq',action='store_true',help="Write all frames to output directory and quit")
         self.subparser.add_argument('--c',action='store_true',help='Force clobber status to True on write')
         self.subparser.add_argument('-r',action='store_true',help='Restore original')
-
+        self.subparser.add_argument('--stretch',choices=['linear','sqrt','arcsinh','log','power','squared'],help='Choose image stretch (default = linear)')
         self.subparser.add_argument('--clip_lo',type=float,help='Clip minimum intensity percentile')
         self.subparser.add_argument('--clip_hi',type=float,help='Clip maximum intensity percentile')
         self.subparser.add_argument('--vmin',type=float,help='Clip minimum intensity')
