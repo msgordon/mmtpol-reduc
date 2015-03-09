@@ -173,8 +173,8 @@ def nudge(filelist,step=5.0,outdir='.',ext=''):
         # copy f00 file to directory
         d00,h00 = pyfits.getdata(filelist[0],header=True)
         h00['N_ORIG_F'] = (filelist[0],'Original file before nudge')
-        h['N_XS'] = (0,'Xshift of nudge')
-        h['N_YS'] = (0,'Yshift of nudge')
+        h00['N_XS'] = (0,'Xshift of nudge')
+        h00['N_YS'] = (0,'Yshift of nudge')
         f00 = os.path.basename(filelist[0])
         f00 = os.path.splitext(f00)
         f00 = ''.join([f00[0],ext,f00[1]])
