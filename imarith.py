@@ -3,10 +3,11 @@ import argparse
 import pyfits
 import numpy as np
 import os
+import warnings
 
 def coadd(filelist,method='sum',out=None):
     folist = [pyfits.getdata(x,header=True) for x in filelist]
-    data,headers = zip(*flist)
+    data,headers = zip(*folist)
     if method == 'sum':
         data = np.sum(data,axis=0)
 
@@ -26,7 +27,9 @@ def coadd(filelist,method='sum',out=None):
     header['COADD_TY'] = (method,'Coadd type')
 
     if out:
-        pyfits.writeto(out,data,header=header,clobber=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            pyfits.writeto(out,data,header=header,clobber=True)
 
     return data,header
 
@@ -36,7 +39,7 @@ def combine(op1f, op2f, method, out=None):
 
     header = op1[0].header
 
-    if method == 'add':
+    if method == 'sum':
         data = op1[0].data + op2[0].data
     elif method == 'sub':
         data = op1[0].data - op2[0].data
@@ -57,21 +60,33 @@ def combine(op1f, op2f, method, out=None):
     header['OP2'] = (op2f,'Operand2')
 
     if out:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
         pyfits.writeto(out,data,header=header,clobber=True)
 
     return data,header
 
 def main():
     parser = argparse.ArgumentParser(description='Performs image arithmetic on input files')
-    parser.add_argument('op1',type=str,help='Image file, operand 1')
-    parser.add_argument('op2',type=str,help='Image file, operand 2')
+
+    parser.add_argument('filelist',nargs='+',help='Input FILES files')
     parser.add_argument('out',type=str,help='Output file')
-    parser.add_argument('-method',choices=('add','sub','mult','div','mean','median'),default='sub',help='Operation (default="sub")')
+    parser.add_argument('-method',choices=('sum','sub','mult','div','mean','median'),default='sum',help='Operation (default="sum")')
 
     
     args = parser.parse_args()
+    if len(filelist) < 2:
+        print 'At least two files required'
+        exit(1)
 
-    data,header = combine(args.op1,args.op2,args.method,args.out)
+    if method in ['sub','div']:
+        if len(filelist) != 2:
+            print "Only two files allowed for method '%s'" % args.method
+            exit(1)
+        data,header = combine(args.filelist[0],args.filelist[1],args.method,args.out)
+
+    else:
+        data, header = coadd(args.filelist,method=args.method,out=args.out)
 
     if data is None:
         return 1

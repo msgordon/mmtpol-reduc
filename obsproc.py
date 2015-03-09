@@ -6,6 +6,7 @@ import glob
 import ConfigParser
 import cdspair
 import wollysplit
+import warnings
 from imarith import combine, coadd
 
 REQ_OPTIONS = set(('prefix','start','stop','dither_pattern',
@@ -74,7 +75,7 @@ def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
     groups = zip(*[iter(cdslist)]*obs_per_pos)
     coaddlist = []
     for group in groups:
-        filenums = [x.split('.')[-2] for x in pair]
+        filenums = [x.split('.')[-2] for x in group]
         outfile = os.path.basename(group[0]).split('.')[0]
         outfile = '.'.join([outfile]+filenums+['fits'])
         outfile = os.path.join(codir,outfile)
@@ -83,7 +84,9 @@ def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
 
         if not sim:
             data, header = coadd(group,method='sum')
-            pyfits.writeto(outfile,data,header,clobber=True)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                pyfits.writeto(outfile,data,header,clobber=True)
 
     print 'Coadd obs \t-> %s' % codir
     return coaddlist
@@ -107,8 +110,10 @@ def obspair_sum(dithlist,section,prefix,pattern,obspairdir='obspair_sum',sim=Fal
         Qdata,Qheader = combine(dithlist[0],dithlist[1],method='add')
         Udata,Uheader = combine(dithlist[2],dithlist[3],method='add')
 
-        pyfits.writeto(Qfile,Qdata,Qheader,clobber=True)
-        pyfits.writeto(Ufile,Udata,Uheader,clobber=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            pyfits.writeto(Qfile,Qdata,Qheader,clobber=True)
+            pyfits.writeto(Ufile,Udata,Uheader,clobber=True)
 
     print 'Obs pairs \t-> %s' % obspairdir
     return Qfile,Ufile
@@ -137,10 +142,12 @@ def dither_subtract(qulist,section,prefix,pattern,ditherdir='dithersub',sim=Fals
             Q1data,Q1header = combine(qulist[3][0],qulist[2][0],method='sub')
             U1data,U1header = combine(qulist[3][1],qulist[2][1],method='sub')
 
-            pyfits.writeto(outlist[0],Q0data,Q0header,clobber=True)
-            pyfits.writeto(outlist[1],Q1data,Q1header,clobber=True)
-            pyfits.writeto(outlist[2],U0data,U0header,clobber=True)
-            pyfits.writeto(outlist[3],U1data,U1header,clobber=True)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                pyfits.writeto(outlist[0],Q0data,Q0header,clobber=True)
+                pyfits.writeto(outlist[1],Q1data,Q1header,clobber=True)
+                pyfits.writeto(outlist[2],U0data,U0header,clobber=True)
+                pyfits.writeto(outlist[3],U1data,U1header,clobber=True)
 
     print 'Dither pairs \t-> %s' % ditherdir
     return outlist
@@ -170,14 +177,18 @@ def qu_pair_subtract(cdslist,section,prefix,pattern,qudir='qupair',sim=False):
                 header['DITHPOS'] = (pos,'Dither position')
                 header['POLPAIR'] = ('Q','Polarization pair (Q/U)')
                 header['OBSSEC'] = (section, 'Observation section')
-                pyfits.writeto(outfileQ,data,header,clobber=True)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfileQ,data,header,clobber=True)
                 
                 data, header = combine(f22,f67,method='sub')
                 header['DITHPOS'] = (pos,'Dither position')
                 header['POLPAIR'] = ('U','Polarization pair (Q/U)')
                 header['OBSSEC'] = (section, 'Observation section')
 
-                pyfits.writeto(outfileU,data,header,clobber=True)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfileU,data,header,clobber=True)
 
             outlist.append((outfileQ,outfileU))
     

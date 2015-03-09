@@ -3,6 +3,7 @@ import pyfits
 import os
 import argparse
 import numpy as np
+import warnings
 
 
 def get_filenum(name,prefix):
@@ -38,10 +39,15 @@ def split(filename,outdir,sim=False):
         hdr['BEAM'] = ('Or','Image half')
         #hdr['FILENUM'] = (get_filenum(filename,prefix),'Observation number')
     
-        pyfits.writeto(Orfile,Ordat,header=hdr,clobber=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            pyfits.writeto(Orfile,Ordat,header=hdr,clobber=True)
                 
         hdr['BEAM'] = ('Ex','Image half')
-        pyfits.writeto(Exfile,Exdat,header=hdr,clobber=True)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            pyfits.writeto(Exfile,Exdat,header=hdr,clobber=True)
         f.close()
 
     return (Orfile, Exfile)

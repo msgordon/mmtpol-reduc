@@ -2,6 +2,7 @@
 import argparse
 import pyfits
 import os
+import warnings
 
 def pipe_run(filelist, outdir='cdspair', sim = False, verbose=False):
     try:
@@ -20,7 +21,9 @@ def pipe_run(filelist, outdir='cdspair', sim = False, verbose=False):
             print '\tWriting %s' % outfile
             
         if not sim:
-            pyfits.writeto(outfile, data, header, clobber = True)
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                pyfits.writeto(outfile, data, header, clobber = True)
         outlist.append(outfile)
 
     return outlist
