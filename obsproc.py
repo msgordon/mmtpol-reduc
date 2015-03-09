@@ -196,7 +196,7 @@ def qu_pair_subtract(cdslist,section,prefix,pattern,align=False,qudir='qupair',s
             
             if align:
                 nudgedir = os.path.join(qudir,'nudged')
-                f00,f45,f22,f67 = nudge_align(files,nudgedir)
+                f00,f45,f22,f67 = nudge(files,nudgedir)
                                              
             
             outfileQ = '.'.join([prefix,section,pos,'Q',obs,'fits'])
