@@ -155,6 +155,13 @@ def dither_subtract(qulist,section,prefix,pattern,ditherdir='dithersub',sim=Fals
         
 
 def nudge(filelist,step=5.0,outdir='.',ext=''):
+
+    try:
+        os.mkdir(outdir)
+    except OSError:
+        # directory exists
+        pass
+    
     try:
         compfiles = nudge_align.pipe_run(filelist,step=step,outdir=outdir,ext=ext,clobber=True)
     except Exception as e:
