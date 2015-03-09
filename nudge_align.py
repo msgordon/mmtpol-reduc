@@ -149,7 +149,7 @@ class WindowParser(object):
 
         if args.q:
             plt.close()
-            exit()
+            return self.caller.outfiles
 
 
                     
