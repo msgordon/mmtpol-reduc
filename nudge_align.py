@@ -159,6 +159,7 @@ class WindowParser(object):
             self.caller.fig.canvas.mpl_disconnect(self.caller.drawcid)
             self.caller.fig.canvas.mpl_disconnect(self.caller.homecid)
             plt.close('all')
+            self.caller.CLOSING = True
             return self.caller.outfiles
 
 
@@ -212,6 +213,8 @@ class Plotter(object):
         self.keycid = self.fig.canvas.mpl_connect('key_press_event',self.onkey)
         self.drawcid = self.fig.canvas.mpl_connect('draw_event', self.ondraw)
         self.homecid = self.fig.canvas.mpl_connect('home_event', self.onhome)
+
+        self.CLOSING = False
 
 
         # For return
@@ -343,6 +346,9 @@ class Plotter(object):
             self.keycid = self.fig.canvas.mpl_connect('key_press_event',self.onkey)
             self.subparser.parse(self.pausetext)
             self.pausetext = '-'
+
+            if self.CLOSING:
+                return self.outfiles
             self.display()
 
             self.displaytext('[%.2f, %.2f] s=%.2f'%
