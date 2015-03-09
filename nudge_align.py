@@ -7,6 +7,7 @@ import os.path
 from os import mkdir
 import numpy as np
 from ds9norm import DS9Normalize
+import warnings
 from matplotlib.backend_bases import NavigationToolbar2, Event
 
 home = NavigationToolbar2.home
@@ -74,7 +75,9 @@ class WindowParser(object):
             outfile = ''.join([outfile[0],self.caller.ext,outfile[1]])
             outfile = os.path.join(self.caller.outdir,outfile)
             try:
-                pyfits.writeto(outfile,data=self.caller.active_data,header=h,clobber=self.caller.clobber)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfile,data=self.caller.active_data,header=h,clobber=self.caller.clobber)
             except IOError as e:
                 print e, "'--c' to force overwrite"
             else:
@@ -100,9 +103,13 @@ class WindowParser(object):
                 
                 try:
                     if idx == self.caller.current:
-                        pyfits.writeto(outfile,data=self.caller.active_data,header=h,clobber=self.caller.clobber)
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore')
+                            pyfits.writeto(outfile,data=self.caller.active_data,header=h,clobber=self.caller.clobber)
                     else:
-                        pyfits.writeto(outfile,data=self.caller.compdata[idx],header=h,clobber=self.caller.clobber)
+                        with warnings.catch_warnings():
+                            warnings.simplefilter('ignore')
+                            pyfits.writeto(outfile,data=self.caller.compdata[idx],header=h,clobber=self.caller.clobber)
                 except IOError as e:
                     print e, "'--c' to force overwrite"
                     args.q = False #don't quit if file fails to write
@@ -378,7 +385,10 @@ def pipe_run(filelist,step=5.0,outdir='.',ext='',clobber=True):
     reffile = filelist[0]
     compfiles = filelist[1:]
     plotter = Plotter(reffile,compfiles,step,outdir,ext,clobber)
-    plotter.show()
+    try:
+        plotter.show()
+    except Exception as e:
+        print e
     return plotter.outfiles
 
 def main():
