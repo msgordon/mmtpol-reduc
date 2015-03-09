@@ -107,8 +107,8 @@ def obspair_sum(dithlist,section,prefix,pattern,obspairdir='obspair_sum',sim=Fal
     Ufile = os.path.join(obspairdir,Ufile)
 
     if not sim:
-        Qdata,Qheader = combine(dithlist[0],dithlist[1],method='add')
-        Udata,Uheader = combine(dithlist[2],dithlist[3],method='add')
+        Qdata,Qheader = combine(dithlist[0],dithlist[1],method='sum')
+        Udata,Uheader = combine(dithlist[2],dithlist[3],method='sum')
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
