@@ -155,9 +155,9 @@ class WindowParser(object):
             print 'Restored image from %s' % self.caller.compfiles[self.caller.current]
 
         if args.q:
-            self.fig.mpl_disconnect(self.keycid)
-            self.fig.mpl_disconnect(self.drawcid)
-            self.fig.mpl_disconnect(self.homecid)
+            self.caller.fig.mpl_disconnect(self.keycid)
+            self.caller.fig.mpl_disconnect(self.drawcid)
+            self.caller.fig.mpl_disconnect(self.homecid)
             plt.close('all')
             return self.caller.outfiles
 
