@@ -393,7 +393,7 @@ class Plotter(object):
 def pipe_run(filelist,step=5.0,outdir='.',ext='',clobber=True):
     reffile = filelist[0]
     compfiles = filelist[1:]
-    plotter = Plotter(reffile,compfiles,step,outdir,ext,clobber)
+    plotter = Plotter(reffile,compfiles,step=step,outdir=outdir,ext=ext,clobber=clobber)
     try:
         plotter.show()
     except Exception as e:
