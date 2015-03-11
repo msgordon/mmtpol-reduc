@@ -24,7 +24,7 @@ def IQR(data):
     return q25,q75
 
 class WindowParser(object):
-    subparser = argparse.ArgumentParser(description='Parse window text.',prog='')
+    subparser = argparse.ArgumentParser(description='Parse window text.',prog='',conflict_handler='resolve')
 
     def __init__(self, caller):
         if not isinstance(caller, Plotter):
@@ -37,6 +37,7 @@ class WindowParser(object):
         self.subparser.add_argument('-wa',action='store_true',help="Write all frames to output directory")
         self.subparser.add_argument('-wq',action='store_true',help="Write all frames to output directory and quit")
         self.subparser.add_argument('--c',action='store_true',help='Force clobber status to True on write')
+        self.subparser.add_argument('--p',action='store_true',help='Apply previous offsets')
         self.subparser.add_argument('-r',action='store_true',help='Restore original')
         self.subparser.add_argument('--stretch',choices=['linear','sqrt','arcsinh','log','power','squared'],help='Choose image stretch (default = linear)')
         self.subparser.add_argument('--clip_lo',type=float,help='Clip minimum intensity percentile')
@@ -63,8 +64,28 @@ class WindowParser(object):
         if args.s:
             self.caller.step = args.s
             print 'Step size changed to %.2f' % args.s
+        
+        if args.p:
+            self.caller.offsets[self.caller.current] = self.caller.coffset
+            print 'Applying previous offset [%.2f, %.2f]' % \
+                (self.caller.offsets[self.caller.current][0],
+                 self.caller.offsets[self.caller.current][1])
+            self.caller.active_data = shift(self.caller.active_data,[self.caller.coffset[1],self.caller.coffset[0]])
+            self.caller.diff_update()
+            self.caller.display()
+            self.caller.displaytext('[%.2f, %.2f] s=%.2f'%
+                         (self.caller.offsets[self.caller.current][0],
+                          self.caller.offsets[self.caller.current][1],
+                          self.caller.step), x=0.3)
 
+            
         if args.w:
+
+            try:
+                mkdir(self.caller.outdir)
+            except OSError:
+                pass
+            
             h = pyfits.getheader(self.caller.compfiles[self.caller.current])
             h['N_ORIG_F'] = (self.caller.compfiles[self.caller.current],'Original file before nudge')
             h['N_XS'] = (self.caller.offsets[self.caller.current][0],'Xshift of nudge')
@@ -82,11 +103,20 @@ class WindowParser(object):
             else:
                 print '%s: written to disk, s = [%.2f, %.2f]' % (outfile,self.caller.offsets[self.caller.current][0],self.caller.offsets[self.caller.current][1])
 
+        if args.q and self.caller.pipe:
+            args.wq = True
+            
+                
         if args.wq:
             args.wa = True
             args.q = True
                 
         if args.wa:
+            try:
+                mkdir(self.caller.outdir)
+            except OSError:
+                pass
+            
             for idx in range(0,len(self.caller.compfiles)):
                 h = pyfits.getheader(self.caller.compfiles[idx])
                 h['N_ORIG_F'] = (self.caller.compfiles[idx],'Original file before nudge')
@@ -166,10 +196,13 @@ class WindowParser(object):
 class Plotter(object):
 
     def __init__(self, reffile, compfiles,
-                 step=1.0,outdir='./nudged',ext='',clobber=False):
+                 step=1.0,outdir='./nudged',ext='',clobber=False,pipe=False):
 
+        # if called from pipe_run
+        self.pipe = pipe
+        
         self.reffile = reffile
-        self.refdata = pyfits.getdata(self.reffile)
+        self.refdata = np.abs(pyfits.getdata(self.reffile))
 
         self.compfiles = compfiles
         self.compdata = map(pyfits.getdata, self.compfiles)
@@ -183,6 +216,7 @@ class Plotter(object):
 
         # Initialize offsets to zero
         self.offsets = np.zeros((len(self.compfiles),2))
+        self.coffset = [0, 0]
 
         # Current displayed plot
         self.current = 0
@@ -190,7 +224,7 @@ class Plotter(object):
         self.active_data = self.orig_data
 
         # Difference
-        self.diff_data = self.refdata - self.active_data
+        self.diff_data = self.refdata - np.abs(self.active_data)
 
         # Initial limits
         self.ixlim = (0, self.active_data.shape[1])
@@ -265,7 +299,7 @@ class Plotter(object):
         return pid
 
     def diff_update(self):
-        self.diff_data = self.refdata - self.active_data
+        self.diff_data = self.refdata - np.abs(self.active_data)
         return
 
 
@@ -278,6 +312,7 @@ class Plotter(object):
             if self.current >= len(self.compfiles)-1:
                 return
             self.compdata[self.current] = self.active_data
+            self.coffset = self.offsets[self.current]
             self.current += 1
             self.orig_data = pyfits.getdata(self.compfiles[self.current])
             self.active_data = self.compdata[self.current]
@@ -287,11 +322,14 @@ class Plotter(object):
             if self.current == 0:
                 return
             self.compdata[self.current] = self.active_data
+            self.coffset = self.offsets[self.current]
             self.current -= 1
             
             self.orig_data = pyfits.getdata(self.compfiles[self.current])
             self.active_data = self.compdata[self.current]
             self.diff_update()
+
+
 
         elif event.key == '-':
             self.fig.canvas.mpl_disconnect(self.keycid)
@@ -392,7 +430,7 @@ class Plotter(object):
 def pipe_run(filelist,step=5.0,outdir='.',ext='',clobber=True):
     reffile = filelist[0]
     compfiles = filelist[1:]
-    plotter = Plotter(reffile,compfiles,step=step,outdir=outdir,ext=ext,clobber=clobber)
+    plotter = Plotter(reffile,compfiles,step=step,outdir=outdir,ext=ext,clobber=clobber,pipe=True)
     try:
         plotter.show()
     except Exception as e:

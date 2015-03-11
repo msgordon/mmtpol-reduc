@@ -71,7 +71,6 @@ def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
             # directory exists
             pass
 
-    #print 'Coadding %i obs per position' % obs_per_pos
     # co add pairs
     groups = zip(*[iter(cdslist)]*obs_per_pos)
     coaddlist = []
@@ -93,7 +92,7 @@ def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
     return coaddlist
 
 
-def obspair_sum(dithlist,section,prefix,pattern,obspairdir='obspair_sum',sim=False):
+def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',sim=False):
     if not sim:
         try:
             os.mkdir(obspairdir)
@@ -108,8 +107,8 @@ def obspair_sum(dithlist,section,prefix,pattern,obspairdir='obspair_sum',sim=Fal
     Ufile = os.path.join(obspairdir,Ufile)
 
     if not sim:
-        Qdata,Qheader = combine(dithlist[0],dithlist[1],method='sum')
-        Udata,Uheader = combine(dithlist[2],dithlist[3],method='sum')
+        Qdata,Qheader = combine(filelist[0],filelist[1],method='sum')
+        Udata,Uheader = combine(filelist[2],filelist[3],method='sum')
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
@@ -119,7 +118,7 @@ def obspair_sum(dithlist,section,prefix,pattern,obspairdir='obspair_sum',sim=Fal
     print 'Obs pairs \t-> %s' % obspairdir
     return Qfile,Ufile
 
-def dither_subtract(qulist,section,prefix,pattern,ditherdir='dithersub',sim=False):
+def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=False):
     if not sim:
         try:
             os.mkdir(ditherdir)
@@ -127,29 +126,36 @@ def dither_subtract(qulist,section,prefix,pattern,ditherdir='dithersub',sim=Fals
             # directory exists
             pass
 
-    outlist = []
+
+    outlist = []            
     if pattern == 'ABBA':
-        Q0file = '.'.join([prefix,section,'Q','0','fits'])
-        Q1file = '.'.join([prefix,section,'Q','1','fits'])
-        U0file = '.'.join([prefix,section,'U','0','fits'])
-        U1file = '.'.join([prefix,section,'U','1','fits'])
+        # group by four dith pos
+        groups = zip(*[iter(cdslist)]*4)
+        dithgroups = [group for group in zip(*groups)]
+        HWP_PA = ['00','45','22','67']
+        for files,HWP in zip(groups,HWP_PA):
+            fA1,fB1,fB2,fA2 = files
 
-        outlist += [Q0file,Q1file,U0file,U1file]
-        outlist = [os.path.join(ditherdir,x) for x in outlist]
+            outfile0 = '.'.join([prefix,section,HWP,'0','fits'])
+            outfile0 = os.path.join(ditherdir,outfile0)
+            outfile1 = '.'.join([prefix,section,HWP,'1','fits'])
+            outfile1 = os.path.join(ditherdir,outfile1)
 
-        if not sim:
-            Q0data,Q0header = combine(qulist[0][0],qulist[1][0],method='sub')
-            U0data,U0header = combine(qulist[0][1],qulist[1][1],method='sub')
-            Q1data,Q1header = combine(qulist[3][0],qulist[2][0],method='sub')
-            U1data,U1header = combine(qulist[3][1],qulist[2][1],method='sub')
+            if not sim:
+                data0,header0 = combine(fA1,fB1,method='sub')
+                header0['DITHPOS'] = (0,'0=A1-B1,1=A2-B2')
+                header0['OBSSEC'] = (section,'Observation section')
+                data1,header1 = combine(fA2,fB2,method='sub')
+                header1['DITHPOS'] = (1,'0=A1-B1,1=A2-B2')
+                header1['OBSSEC'] = (section,'Observation section')
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfile0,data0,header0,clobber=True)
+                    pyfits.writeto(outfile1,data1,header1,clobber=True)
+                
+            outlist.append((outfile0,outfile1))
 
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
-                pyfits.writeto(outlist[0],Q0data,Q0header,clobber=True)
-                pyfits.writeto(outlist[1],Q1data,Q1header,clobber=True)
-                pyfits.writeto(outlist[2],U0data,U0header,clobber=True)
-                pyfits.writeto(outlist[3],U1data,U1header,clobber=True)
-
+            
     print 'Dither pairs \t-> %s' % ditherdir
     return outlist
         
@@ -186,7 +192,7 @@ def nudge(filelist,step=5.0,outdir='.',ext=''):
         return [f00] + compfiles
     
 
-def qu_pair_subtract(cdslist,section,prefix,pattern,align=False,qudir='qupair',sim=False):
+def qu_pair_subtract(dithlist,section,prefix,pattern,qudir='qupair',sim=False):
     if not sim:
         try:
             os.mkdir(qudir)
@@ -196,40 +202,40 @@ def qu_pair_subtract(cdslist,section,prefix,pattern,align=False,qudir='qupair',s
 
     outlist = []            
     if pattern == 'ABBA':
-        # group by four HWP pos
-        groups = zip(*[iter(cdslist)]*4)
-        for files,pos,obs in zip(groups,pattern,['0','0','1','1']):
-            f00,f45,f22,f67 = files
-            
-            if align:
-                nudgedir = os.path.join(qudir,'nudged')
-                f00,f45,f22,f67 = nudge(files,outdir=nudgedir)
-                                             
-            
-            outfileQ = '.'.join([prefix,section,pos,'Q',obs,'fits'])
-            outfileQ = os.path.join(qudir,outfileQ)
-            outfileU = '.'.join([prefix,section,pos,'U',obs,'fits'])
-            outfileU = os.path.join(qudir,outfileU)
-            if not sim:
-                data, header = combine(f00,f45,method='sub')
-                header['DITHPOS'] = (pos,'Dither position')
-                header['POLPAIR'] = ('Q','Polarization pair (Q/U)')
-                header['OBSSEC'] = (section, 'Observation section')
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore')
-                    pyfits.writeto(outfileQ,data,header,clobber=True)
-                
-                data, header = combine(f22,f67,method='sub')
-                header['DITHPOS'] = (pos,'Dither position')
-                header['POLPAIR'] = ('U','Polarization pair (Q/U)')
-                header['OBSSEC'] = (section, 'Observation section')
+        # group two obs positions
+        dith0,dith1 = zip(*dithlist)
+        f00_0, f45_0, f22_0, f67_0 = dith0
+        f00_1, f45_1, f22_1, f67_1 = dith1
 
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore')
-                    pyfits.writeto(outfileU,data,header,clobber=True)
+        outfileQ0 = '.'.join([prefix,section,'Q','0','fits'])
+        outfileQ0 = os.path.join(qudir,outfileQ0)
+        outfileU0 = '.'.join([prefix,section,'U','0','fits'])
+        outfileU0 = os.path.join(qudir,outfileU0)
 
-            outlist.append((outfileQ,outfileU))
-    
+        outfileQ1 = '.'.join([prefix,section,'Q','1','fits'])
+        outfileQ1 = os.path.join(qudir,outfileQ1)
+        outfileU1 = '.'.join([prefix,section,'U','1','fits'])
+        outfileU1 = os.path.join(qudir,outfileU1)
+
+        outlist = [outfileQ0,outfileU0,outfileQ1,outfileU1]
+
+        if not sim:
+            dataQ0, headerQ0 = combine(f00_0,f45_0,method='sub')
+            headerQ0['POLPAIR'] = ('Q','Polarization pair (Q/U)')
+            dataU0, headerU0 = combine(f22_0,f67_0,method='sub')
+            headerU0['POLPAIR'] = ('U','Polarization pair (Q/U)')
+            dataQ1, headerQ1 = combine(f00_1,f45_1,method='sub')
+            headerQ1['POLPAIR'] = ('Q','Polarization pair (Q/U)')
+            dataU1, headerU1 = combine(f22_1,f67_1,method='sub')
+            headerU1['POLPAIR'] = ('U','Polarization pair (Q/U)')
+
+            datalist = [dataQ0,dataU0,dataQ1,dataU1]
+            headerlist = [headerQ0,headerU0,headerQ1,headerU1]
+            
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                for filename,data,header in zip(outlist,datalist,headerlist):
+                    pyfits.writeto(filename,data,header,clobber=True)
     print 'QU pairs \t-> %s' % qudir
     return outlist
 
@@ -243,42 +249,46 @@ def main():
 
     config = ConfigParser.SafeConfigParser()
     config.read(args.cfg)
+
+    endlist = []
     
     for section in config.sections():
         # get filelist for each section
         filelist, secdir = proc_section(config, section, args.sim)
 
+        pattern = config.get(section, 'dither_pattern')
+        prefix = config.get(section, 'object')
+        obs_per_pos = config.getint(section, 'obs_per_pos')
+        
         # perform cdspair subtraction
         cdslist = cds_pair_subtract(filelist, secdir,sim=args.sim)
 
-        # QU pair
-        pattern = config.get(section, 'dither_pattern')
-        obs_per_pos = config.getint(section, 'obs_per_pos')
-        prefix = config.get(section, 'object')
-        
+        # coadd multi obs per pos
         if obs_per_pos > 2:  
             cdslist = coadd_obs(cdslist,obs_per_pos,codir=os.path.join(secdir,'coaddobs'),sim=args.sim)
-        
-        qudir = os.path.join(secdir,'qupair')
-        qulist = qu_pair_subtract(cdslist,section,prefix,pattern,align=True,qudir=qudir,sim=args.sim)
 
-        
-        #dither sub
-        dithdir = os.path.join(secdir,'dither_sub')
-        dithlist = dither_subtract(qulist,section,prefix,pattern,ditherdir=dithdir,sim=args.sim)
+        # perform dither subtraction
+        dithdir = os.path.join(secdir,'dithersub')
+        dithlist = dither_subtract(cdslist,section,prefix,pattern,ditherdir=dithdir,sim=args.sim)
+
+        # perform QU subtraction
+        qudir = os.path.join(secdir,'qupair')
+        qulist = qu_pair_subtract(dithlist,section,prefix,pattern,qudir=qudir,sim=args.sim)
 
         # combine dither pairs
         obspairdir = os.path.join(secdir,'obspair')
-        obspairlist = obspair_sum(dithlist,section,prefix,pattern,obspairdir=obspairdir,sim=args.sim)
-        
+        obspairlist = obspair_sum(qulist,section,prefix,pattern,obspairdir=obspairdir,sim=args.sim)
+
         # wolly split
         wollydir = os.path.join(secdir,'wollysplit')
         wollylist = wolly_split(obspairlist,wollydir=wollydir,sim=args.sim)
-        
 
+        endlist.append((section,wollydir))
         print
 
-        
+    for section,wollydir in endlist:
+        print '%s -> %s' % (section,wollydir)
+    return 0
         
 if __name__ == '__main__':
     main()
