@@ -3,8 +3,8 @@ This repository is a collection of programs useful for organizing the many files
 
 - CDS pair subtraction
 - Dither pair subtraction
-- Coadd dither pairs (for ABBA pattern, optional)
 - QU pair subtraction (optional)
+- Coadd dither pairs (for ABBA pattern, optional)
 - Wolly split
 
 More on these steps below.
@@ -12,11 +12,11 @@ More on these steps below.
 ### Requirements
 The following python modules are required.
 
--[stsci_python](http://www.stsci.edu/institute/software_hardware/pyraf/stsci_python/installation)
--[SciPy stack](http://www.scipy.org/install.html)
+- [stsci_python](http://www.stsci.edu/institute/software_hardware/pyraf/stsci_python/installation)
+- [SciPy stack](http://www.scipy.org/install.html)
 
 ### Installation
-The repository can simply be downloaded as a [.zip](https://github.com/msgordon/mmtpol-reduc/archive/master.zip), but if possible, please use ```git```:
+The repository can simply be downloaded as a ```[.zip](https://github.com/msgordon/mmtpol-reduc/archive/master.zip)```, but if possible, please use ```git```:
 ```git clone https://github.com/msgordon/mmtpol-reduc.git```
 
 For ease of use, place the code directory in your ```PATH``` environment.
@@ -27,6 +27,7 @@ All modules have an integrated help menu that can be displayed with the ```-h```
 Each set of observations is run through the main ```obsproc.py``` program using a config file.  This file must be constructed for each object based on information from the observation log.  An example is included in the repository above, but the syntax is also reviewed below.  
 
 ```p_HD_38563A.cfg```
+
 ```
 [OBS1]
 object = p_HD_38563A       # object name
