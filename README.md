@@ -50,7 +50,7 @@ If you would like to do a 'dry-run' without actually writing files, add the ```-
 
 ```obsproc.py p_HD_38563A.cfg --sim```
 
-Additionally, if you would like to coadd the two ```ABBA``` dither pairs (```[A1-B1]``` + ```[A2-B2]```), use the ```--dithadd``` switch.  To perform QU pair subtraction (```Q``` = ```[00]-[45]```, ```U``` = ```[22]-[67]```), use the ```--qusub``` switch.  These can be applied together, in which case the resulting images are represent coadds of the QU pairs.
+Additionally, if you would like to coadd the two ```ABBA``` dither pairs (```[A1-B1]``` + ```[A2-B2]```), use the ```--dithadd``` switch.  To perform QU pair subtraction (```Q``` = ```[00]-[45]```, ```U``` = ```[22]-[67]```), use the ```--qusub``` switch.  These can be applied together, in which case the resulting images are coadds of the QU pairs.
 
 ```obsproc.py p_HD_38563A.cfg --qusub --dithadd```
 
