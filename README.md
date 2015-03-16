@@ -17,6 +17,7 @@ The following python modules are required.
 
 ### Installation
 The repository can simply be downloaded as a ```[.zip](https://github.com/msgordon/mmtpol-reduc/archive/master.zip)```, but if possible, please use ```git```:
+
 ```git clone https://github.com/msgordon/mmtpol-reduc.git```
 
 For ease of use, place the code directory in your ```PATH``` environment.
@@ -41,19 +42,24 @@ stop = 140                 # last exposure file number in the sequence
 
 Multiple observation sets of the same object can (and should) be placed in the same config file by adding additional section headers (```[OBS2]```, ```[OBS3]```, etc).
 
-Assuming ```obsproc.py``` is your ```PATH```, run the program in the same direcotry as the data as follows:
+Assuming ```obsproc.py``` is in your ```PATH```, run the program in the same directory as the data as follows:
+
 ```obsproc.py p_HD_38563A.cfg```
 
 If you would like to do a 'dry-run' without actually writing files, add the ```--sim``` switch:
+
 ```obsproc.py p_HD_38563A.cfg --sim```
 
 Additionally, if you would like to coadd the two ```ABBA``` dither pairs (```[A1-B1]``` + ```[A2-B2]```), use the ```--dithadd``` switch.  To perform QU pair subtraction (```Q``` = ```[00]-[45]```, ```U``` = ```[22]-[67]```), use the ```--qusub``` switch.  These can be applied together, in which case the resulting images are represent coadds of the QU pairs.
+
 ```obsproc.py p_HD_38563A.cfg --qusub --dithadd```
 
 Usage instructions can be seen, again, by using the ```-h``` switch:
+
 ```obsproc.py -h```
 
 The resulting images from this example are written to:
+
 ```p_HD_38563A/wollysplit```
 
 ### 
