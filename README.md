@@ -16,7 +16,7 @@ The following python modules are required.
 - [SciPy stack](http://www.scipy.org/install.html)
 
 ### Installation
-The repository can simply be downloaded as a [.zip](https://github.com/msgordon/mmtpol-reduc/archive/master.zip)```, but if possible, please use ```git```:
+The repository can simply be downloaded as a [.zip](https://github.com/msgordon/mmtpol-reduc/archive/master.zip), but if possible, please use ```git```:
 
 ```git clone https://github.com/msgordon/mmtpol-reduc.git```
 
