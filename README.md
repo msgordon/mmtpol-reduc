@@ -61,3 +61,10 @@ Usage instructions can be seen, again, by using the ```-h``` switch:
 The resulting images from this example are written to:
 
 ```p_HD_38563A/wollysplit```
+
+### Notes
+I would urge caution using the ```--qusub``` mode if observing structure in extended sources.  Careful subpixel alignment is required to form the QU pairs, and I do not provide an automated mechanism for this.
+
+Instead, I have written a module, ```nudge_align.py```, that allows for manual shifts in an interactive ```matplotlib``` window.  While I have found this extremely useful, I have not yet written adequate documentation.  Please email me if you would like a tutorial.
+
+Please send me any feedback, or post an issue on github.
