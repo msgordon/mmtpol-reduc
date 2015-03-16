@@ -62,6 +62,8 @@ The resulting images from this example are written to:
 
 ```p_HD_38563A/wollysplit```
 
+I have only tested this on a few observations from the March 2015 observing run, so please send me any issues you encounter, as well as the config file you used.
+
 ### Notes
 I would urge caution using the ```--qusub``` mode if observing structure in extended sources.  Careful subpixel alignment is required to form the QU pairs, and I do not provide an automated mechanism for this.
 
