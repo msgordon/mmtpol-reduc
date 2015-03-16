@@ -8,7 +8,6 @@ import cdspair
 import wollysplit
 import warnings
 from imarith import combine, coadd
-import nudge_align
 
 REQ_OPTIONS = set(('prefix','start','stop','dither_pattern',
                    'obs_per_pos','outdir'))
@@ -92,7 +91,7 @@ def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
     return coaddlist
 
 
-def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',sim=False):
+def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',qupair=False,sim=False):
     if not sim:
         try:
             os.mkdir(obspairdir)
@@ -100,23 +99,42 @@ def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',sim=False):
             # directory exists
             pass
 
-    Qfile = '.'.join([prefix,section,'Q','fits'])
-    Ufile = '.'.join([prefix,section,'U','fits'])
+    if qupair:
+        Qfile = '.'.join([prefix,section,'Q','fits'])
+        Ufile = '.'.join([prefix,section,'U','fits'])
 
-    Qfile = os.path.join(obspairdir,Qfile)
-    Ufile = os.path.join(obspairdir,Ufile)
+        Qfile = os.path.join(obspairdir,Qfile)
+        Ufile = os.path.join(obspairdir,Ufile)
+        
+        if not sim:
+            Qdata,Qheader = combine(filelist[0],filelist[1],method='sum')
+            Udata,Uheader = combine(filelist[2],filelist[3],method='sum')
 
-    if not sim:
-        Qdata,Qheader = combine(filelist[0],filelist[1],method='sum')
-        Udata,Uheader = combine(filelist[2],filelist[3],method='sum')
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore')
+                pyfits.writeto(Qfile,Qdata,Qheader,clobber=True)
+                pyfits.writeto(Ufile,Udata,Uheader,clobber=True)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            pyfits.writeto(Qfile,Qdata,Qheader,clobber=True)
-            pyfits.writeto(Ufile,Udata,Uheader,clobber=True)
+        print 'Obs pairs \t-> %s' % obspairdir
+        return Qfile,Ufile
 
-    print 'Obs pairs \t-> %s' % obspairdir
-    return Qfile,Ufile
+    else:
+        outlist = []
+        groups = zip(*[iter(filelist)]*4)  # 4 HWP pos
+        for file0,file1 in zip(*groups):
+            outfile = os.path.basename(file0).split('.')[:-2]
+            outfile = '.'.join(outfile+['fits'])
+            outfile = os.path.join(obspairdir,outfile)
+
+            if not sim:
+                data,header = combine(file0,file1,method='sum')
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfile,data,header,clobber=True)
+            outlist.append(outfile)
+        print 'Obs pairs \t-> %s' % obspairdir
+        return outlist
+
 
 def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=False):
     if not sim:
@@ -158,39 +176,46 @@ def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=Fal
             
     print 'Dither pairs \t-> %s' % ditherdir
     return outlist
-        
 
-def nudge(filelist,step=5.0,outdir='.',ext=''):
+def angle_split(dithlist,section,prefix,pattern,hwpdir='hwpdir',sim=False):
+    if not sim:
+        try:
+            os.mkdir(hwpdir)
+        except OSError:
+            # directory exists
+            pass
 
-    try:
-        os.mkdir(outdir)
-    except OSError:
-        # directory exists
-        pass
-    
-    try:
-        compfiles = nudge_align.pipe_run(filelist,step=step,outdir=outdir,ext=ext,clobber=True)
-    except Exception as e:
-        print e
-        print "'nudge_align.py' failed.  Images might not be aligned"
-        return filelist
+    outlist = []            
+    if pattern == 'ABBA':
+        # group two obs positions
+        dith0,dith1 = zip(*dithlist)
+        f00_0, f45_0, f22_0, f67_0 = dith0
+        f00_1, f45_1, f22_1, f67_1 = dith1
 
-    else:
-        # copy f00 file to directory
-        d00,h00 = pyfits.getdata(filelist[0],header=True)
-        h00['N_ORIG_F'] = (filelist[0],'Original file before nudge')
-        h00['N_XS'] = (0,'Xshift of nudge')
-        h00['N_YS'] = (0,'Yshift of nudge')
-        f00 = os.path.basename(filelist[0])
-        f00 = os.path.splitext(f00)
-        f00 = ''.join([f00[0],ext,f00[1]])
-        f00 = os.path.join(outdir,f00)
+        for filename,hwp in zip(dith0,['00','45','22','67']):
+            outfile = '.'.join([prefix,section,hwp,'0','fits'])
+            outfile = os.path.join(hwpdir,outfile)
+            outlist.append(outfile)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            pyfits.writeto(f00,d00,header=h00,clobber=True)
-        return [f00] + compfiles
-    
+            if not sim:
+                data,header = pyfits.getdata(filename,header=True)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfile,data,header=header,clobber=True)
+
+        for filename,hwp in zip(dith1,['00','45','22','67']):
+            outfile = '.'.join([prefix,section,hwp,'1','fits'])
+            outfile = os.path.join(hwpdir,outfile)
+            outlist.append(outfile)
+
+            if not sim:
+                data,header = pyfits.getdata(filename,header=True)
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    pyfits.writeto(outfile,data,header=header,clobber=True)
+
+        print 'HWP rotations \t-> %s' % hwpdir
+        return outlist
 
 def qu_pair_subtract(dithlist,section,prefix,pattern,qudir='qupair',sim=False):
     if not sim:
@@ -244,6 +269,8 @@ def main():
     parser = argparse.ArgumentParser(description='Process observations from .cfg file')
     parser.add_argument('cfg',type=str,help='Config file with obs params.')
     parser.add_argument('--sim',action='store_true',help='If specified, simulate without writing files')
+    parser.add_argument('--qusub',action='store_true',help='If specified, perform QU subtraction')
+    parser.add_argument('--dithadd',action='store_true',help='If specified, coadd dither pairs')
 
     args = parser.parse_args()
 
@@ -271,17 +298,23 @@ def main():
         dithdir = os.path.join(secdir,'dithersub')
         dithlist = dither_subtract(cdslist,section,prefix,pattern,ditherdir=dithdir,sim=args.sim)
 
+        # extract HWP rotations
+        hwpdir = os.path.join(secdir,'hwpdir')
+        outlist = angle_split(dithlist,section,prefix,pattern,hwpdir=hwpdir,sim=args.sim)
+
         # perform QU subtraction
-        qudir = os.path.join(secdir,'qupair')
-        qulist = qu_pair_subtract(dithlist,section,prefix,pattern,qudir=qudir,sim=args.sim)
+        if args.qusub: 
+            qudir = os.path.join(secdir,'qupair')
+            outlist = qu_pair_subtract(dithlist,section,prefix,pattern,qudir=qudir,sim=args.sim)
 
         # combine dither pairs
-        obspairdir = os.path.join(secdir,'obspair')
-        obspairlist = obspair_sum(qulist,section,prefix,pattern,obspairdir=obspairdir,sim=args.sim)
+        if args.dithadd:
+            obspairdir = os.path.join(secdir,'obspair')
+            outlist = obspair_sum(outlist,section,prefix,pattern,obspairdir=obspairdir,sim=args.sim,qupair=args.qusub)
 
         # wolly split
         wollydir = os.path.join(secdir,'wollysplit')
-        wollylist = wolly_split(obspairlist,wollydir=wollydir,sim=args.sim)
+        wollylist = wolly_split(outlist,wollydir=wollydir,sim=args.sim)
 
         endlist.append((section,wollydir))
         print
