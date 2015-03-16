@@ -61,5 +61,3 @@ Usage instructions can be seen, again, by using the ```-h``` switch:
 The resulting images from this example are written to:
 
 ```p_HD_38563A/wollysplit```
-
-### 
