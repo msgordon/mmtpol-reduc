@@ -60,7 +60,7 @@ Usage instructions can be seen, again, by using the ```-h``` switch:
 
 The resulting images from this example are written to:
 
-```p_HD_38563A/wollysplit```
+```-> p_HD_38563A/wollysplit```
 
 I have only tested this on a few observations from the March 2015 observing run, so please send me any issues you encounter, as well as the config file you used.
 
