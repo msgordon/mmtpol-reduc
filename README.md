@@ -24,11 +24,10 @@ For ease of use, place the code directory in your ```PATH``` environment.
 ### Usage
 All modules have an integrated help menu that can be displayed with the ```-h``` command-line switch.
 
-Each set of observations is run through the main ```obsproc.py``` program using a config file.  This file must be constructed for each object based on information from the observation log.  An example is included in the repository above, but the syntax is also reviewed below.  
-
+Each set of observations is run through the main ```obsproc.py``` program using a config file.  This file must be constructed for each object based on information from the observation log.  An example is included in the repository above, but the syntax is also reviewed below.
 ```p_HD_38563A.cfg```
 
-```
+```python
 [OBS1]
 object = p_HD_38563A       # object name
 outdir = p_HD_38563A       # output directory, relative to here
