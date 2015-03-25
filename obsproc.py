@@ -28,7 +28,8 @@ def proc_section(config, section, sim = False):
                                      config.getint(section,'stop'))
     print '[%s]' % section
     #print '\t', '\n\t'.join(filelist)
-    print '\t',columns(filelist)
+    basenames = [os.path.basename(name) for name in filelist]
+    print '\t',columns(basenames)
 
     # make directory for obs
     outdir = config.get(section,'outdir')
@@ -57,9 +58,10 @@ def wolly_split(filelist,wollydir='wollysplit',groups=False,sim=False):
 
 def get_filelist_by_range(prefix, start, stop):
     filelist = glob.glob('%s*' % prefix)
-    numlist = [int(name.split('.')[1]) for name in filelist]
+    numlist = [int(name.split('.')[-2]) for name in filelist]
     filelist = [name for name,num in zip(filelist,numlist) if (num <= stop) and (num >= start)]
     filelist.sort()
+
     return filelist
 
 def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):

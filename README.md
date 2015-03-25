@@ -30,8 +30,9 @@ Each set of observations is run through the main ```obsproc.py``` program using 
 [OBS1]
 object = p_HD_38563A       # object name
 outdir = p_HD_38563A       # output directory, relative to here
-prefix = MMTPol_2015Mar06  # prefix of filename before filenum 
-                           #   (ex. MMTPol_2015Mar06.0272.fits)
+prefix = MMTPol_2015Mar06  # prefix of filename before filenum, including path 
+                           #   ex. /path/to/files/MMTPol_2015Mar06.0272.fits
+			   #   --->  prefix = /path/to/files/MMTPol_2015Mar06
 dither_pattern = ABBA      # dither pattern used
                            #   currently, ABBA is the only supported pattern
 obs_per_pos = 1            # number of observations per HWP pos
