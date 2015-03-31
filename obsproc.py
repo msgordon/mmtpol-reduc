@@ -150,12 +150,11 @@ def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=Fal
     if pattern == 'ABBA':
         # group by four dith pos
         groups = zip(*[iter(cdslist)]*4)
+        print groups
         dithgroups = [group for group in zip(*groups)]
         HWP_PA = ['00','45','22','67']
         for files,HWP in zip(groups,HWP_PA):
             fA1,fB1,fB2,fA2 = files
-            print files
-            exit()
 
             outfile0 = '.'.join([prefix,section,HWP,'0','fits'])
             outfile0 = os.path.join(ditherdir,outfile0)
