@@ -151,8 +151,6 @@ def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=Fal
         # group by four dith pos
         groups = zip(*[iter(cdslist)]*4)
         dithgroups = [group for group in zip(*groups)]
-        print dithgroups
-        exit()
         HWP_PA = ['00','45','22','67']
         for files,HWP in zip(dithgroups,HWP_PA):
             fA1,fB1,fB2,fA2 = files
