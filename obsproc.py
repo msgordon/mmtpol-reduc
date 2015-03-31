@@ -322,6 +322,7 @@ def main():
 
     for section,wollydir in endlist:
         print '%s -> %s' % (section,wollydir)
+        
     return 0
         
 if __name__ == '__main__':
