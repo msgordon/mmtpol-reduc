@@ -146,8 +146,9 @@ def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=Fal
             # directory exists
             pass
 
-
-    outlist = []            
+    print cdslist
+    exit()
+    outlist = []    
     if pattern == 'ABBA':
         # group by four dith pos
         groups = zip(*[iter(cdslist)]*4)
