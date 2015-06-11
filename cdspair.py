@@ -3,6 +3,7 @@ import argparse
 import pyfits
 import os
 import warnings
+import numpy as np
 
 def pipe_run(filelist, outdir='cdspair', sim = False, verbose=False):
     try:
@@ -32,9 +33,10 @@ def pipe_run(filelist, outdir='cdspair', sim = False, verbose=False):
 def subtract(filename,getheader=True):
     '''Subtract FITS extensions.  Return array and header'''
     hdu = pyfits.open(filename)
-
+    
     # Subtract pre-read from post-read
     data = hdu[-1].data - hdu[1].data
+    data = data.astype(np.float)
 
     header = hdu[0].header
     header['PIXSCALE'] = (0.043, 'arcsec/pix')

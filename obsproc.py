@@ -9,25 +9,30 @@ import wollysplit
 import warnings
 from imarith import combine, coadd
 
+#required options in .cfg file
 REQ_OPTIONS = set(('prefix','start','stop','dither_pattern',
                    'obs_per_pos','outdir'))
 
 def columns(printlist, cols=2):
+    """Print two columns of text to terminal"""
     pairs = ["\t".join(printlist[i:i+cols]) for i in range(0,len(printlist),cols)]
     return "\n\t".join(pairs)
 
 def proc_section(config, section, sim = False):
+    """Process a section of the config file"""
     options = config.options(section)
     if not set(options) >= REQ_OPTIONS:
         print 'Required options %s not in section %s' % \
             (list(REQ_OPTIONS-set(options)), section)
         return None
 
+    # Get all files within specified range
     filelist = get_filelist_by_range(config.get(section,'prefix'),
                                      config.getint(section,'start'),
                                      config.getint(section,'stop'))
     print '[%s]' % section
-    #print '\t', '\n\t'.join(filelist)
+
+    # Strip directory
     basenames = [os.path.basename(name) for name in filelist]
     print '\t',columns(basenames)
 
@@ -44,6 +49,7 @@ def proc_section(config, section, sim = False):
 
 
 def cds_pair_subtract(filelist, secdir, pairdir='cdspair',sim=False):
+    """Subtract CDS pairs"""
     cdsout = os.path.join(secdir,pairdir)
     cdslist = cdspair.pipe_run(filelist, outdir=cdsout,sim=sim)
     print 'CDS pairs \t-> %s' % cdsout
@@ -51,12 +57,14 @@ def cds_pair_subtract(filelist, secdir, pairdir='cdspair',sim=False):
 
 
 def wolly_split(filelist,wollydir='wollysplit',groups=False,sim=False):
+    """Split image in half"""
     wollylist = wollysplit.pipe_run(filelist,outdir=wollydir,groups=groups,sim=sim)
     print 'Wolly split \t-> %s' % wollydir
     return wollylist
     
 
 def get_filelist_by_range(prefix, start, stop):
+    """Parse filelist and return list within specified range"""
     filelist = glob.glob('%s*' % prefix)
     numlist = [int(name.split('.')[-2]) for name in filelist]
     filelist = [name for name,num in zip(filelist,numlist) if (num <= stop) and (num >= start)]
@@ -65,6 +73,7 @@ def get_filelist_by_range(prefix, start, stop):
     return filelist
 
 def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
+    """Add obs per pos"""
     if not sim:
         try:
             os.mkdir(codir)
@@ -94,6 +103,7 @@ def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
 
 
 def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',qupair=False,sim=False):
+    """Add dither pairs"""
     if not sim:
         try:
             os.mkdir(obspairdir)
@@ -102,6 +112,7 @@ def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',qupair=Fals
             pass
 
     if qupair:
+        # If QU pairs processed already, coadd Q and U separately
         Qfile = '.'.join([prefix,section,'Q','fits'])
         Ufile = '.'.join([prefix,section,'U','fits'])
 
@@ -121,6 +132,7 @@ def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',qupair=Fals
         return Qfile,Ufile
 
     else:
+        # QU pairs not separated--add all 4 HWP pos for each dither
         outlist = []
         groups = zip(*[iter(filelist)]*4)  # 4 HWP pos
         for file0,file1 in zip(*groups):
@@ -139,6 +151,7 @@ def obspair_sum(filelist,section,prefix,pattern,obspairdir='obspair',qupair=Fals
 
 
 def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=False):
+    """Subtract dither pairs A and B"""
     if not sim:
         try:
             os.mkdir(ditherdir)
@@ -179,6 +192,7 @@ def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=Fal
     return outlist
 
 def angle_split(dithlist,section,prefix,pattern,hwpdir='hwpdir',sim=False):
+    """Separate the dithers and HWP rotations"""
     if not sim:
         try:
             os.mkdir(hwpdir)
@@ -219,6 +233,7 @@ def angle_split(dithlist,section,prefix,pattern,hwpdir='hwpdir',sim=False):
         return outlist
 
 def qu_pair_subtract(dithlist,section,prefix,pattern,qudir='qupair',sim=False):
+    """Subtract QU pairs, 0-45 and 22-67"""
     if not sim:
         try:
             os.mkdir(qudir)
@@ -275,6 +290,7 @@ def main():
 
     args = parser.parse_args()
 
+    # Process config file
     config = ConfigParser.SafeConfigParser()
     config.read(args.cfg)
 
