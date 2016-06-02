@@ -9,6 +9,7 @@ import numpy as np
 from ds9norm import DS9Normalize
 import warnings
 from matplotlib.backend_bases import NavigationToolbar2, Event
+from shutil import copy2
 
 home = NavigationToolbar2.home
 def new_home(self, *args, **kwargs):
@@ -116,6 +117,14 @@ class WindowParser(object):
                 mkdir(self.caller.outdir)
             except OSError:
                 pass
+
+            #copy original reffile
+            outfile = os.path.basename(self.caller.reffile)
+            outfile = os.path.splitext(outfile)
+            outfile = ''.join([outfile[0],self.caller.ext,outfile[1]])
+            outfile = os.path.join(self.caller.outdir,outfile)
+            copy2(self.caller.reffile,outfile)
+
             
             for idx in range(0,len(self.caller.compfiles)):
                 h = pyfits.getheader(self.caller.compfiles[idx])
@@ -443,7 +452,7 @@ def main():
     parser.add_argument('-s',type=float,default=5.0,help='Specify initial step size (default=5.0).')
     parser.add_argument('-o',type=str,default='./nudged/',help="Output directory (default='./nudged/').")
     parser.add_argument('-e',type=str,default='',help="Prefix for filename extension on output (default='').")
-    parser.add_argument('--c',action='store_true',help="Clobber on output (default=False.")
+    parser.add_argument('--c',action='store_true',help="Clobber on output (default=False).")
 
     args = parser.parse_args()
 

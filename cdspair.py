@@ -17,7 +17,7 @@ def pipe_run(filelist, outdir='cdspair', sim = False, verbose=False):
     outlist = []
     for filename in filelist:
         data, header = subtract(filename)
-        outfile = os.path.join(outdir, filename)
+        outfile = os.path.join(outdir, os.path.basename(filename))
         if verbose:
             print '\tWriting %s' % outfile
             
@@ -75,7 +75,7 @@ def main():
         data, header = subtract(filename)
         outfile = os.path.join(args.o, filename)
         print '\tWriting %s' % outfile
-        #pyfits.writeto(outfile, data, header, clobber = True)
+        pyfits.writeto(outfile, data, header, clobber = True)
 
     return 0
     

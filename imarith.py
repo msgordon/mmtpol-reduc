@@ -48,7 +48,7 @@ def scalar_math(filename,scalar,method,out=None):
         data /= scalar
     else:
         print 'Method %s not supported for scalar arithmetic' % method
-        exit()
+        exit(1)
     
 def combine(op1f, op2f, method, out=None):
     op1 = pyfits.open(op1f)

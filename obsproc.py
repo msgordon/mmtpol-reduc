@@ -70,6 +70,9 @@ def get_filelist_by_range(prefix, start, stop):
     filelist = [name for name,num in zip(filelist,numlist) if (num <= stop) and (num >= start)]
     filelist.sort()
 
+    if (len(numlist) < (start-stop+1)):
+        print 'WARNING: Some files may be missing from range'
+    
     return filelist
 
 def coadd_obs(cdslist,obs_per_pos,codir='coaddobs',sim=False):
@@ -158,6 +161,7 @@ def dither_subtract(cdslist,section,prefix,pattern,ditherdir='dithersub',sim=Fal
         except OSError:
             # directory exists
             pass
+
 
     outlist = []    
     if pattern == 'ABBA':
